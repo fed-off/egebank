@@ -1,0 +1,28 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield; /* Убирает стрелочки в Firefox */
+  -webkit-appearance: textfield; /* Убирает стрелочки в Safari и Chrome */
+  appearance: textfield; /* Убирает стрелочки для современных браузеров */
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+body {
+  font-family: 'Times New Roman', Times, serif;
+  margin: 0;
+  padding: 64px;
+  background-color: #e6e6e6;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
