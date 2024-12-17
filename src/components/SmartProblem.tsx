@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Problem from './Problem';
+import Problem from './ui/Problem';
 import { validateAnswer } from '../api';
 
 interface Props {

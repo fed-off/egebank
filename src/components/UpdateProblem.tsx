@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
-
-import { API_BASE_URL } from '../config';
+import Button from './ui/Button';
+import Input from './ui/Input';
+import { updateProblem } from '../api';
+import { PART_2_BEGIN_TYPE } from '../config';
 
 interface Props {
   id: string;
   type: number;
-  answer: number;
+  answer?: number;
+  textAnswer?: string;
   fetchProblem: (id: string) => void;
 }
 
-function UpdateProblem({ id, type, answer, fetchProblem }: Props) {
+function UpdateProblem({ id, type, answer, textAnswer, fetchProblem }: Props) {
   const [token, setToken] = useState<string>('');
   const [newType, setNewType] = useState<string>('');
   const [newAnswer, setNewAnswer] = useState<string>('');
@@ -21,18 +24,19 @@ function UpdateProblem({ id, type, answer, fetchProblem }: Props) {
 
   const formSubmitHandler = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const changes: { type?: number; answer?: number } = {};
+    const changes: { type?: number; answer?: number; textAnswer?: string } = {};
     if (newType) {
       changes.type = +newType;
     }
     if (newAnswer) {
-      changes.answer = +newAnswer;
+      const problemType = newType ? +newType : type;
+      if (problemType >= PART_2_BEGIN_TYPE) {
+        changes.textAnswer = newAnswer;
+      } else {
+        changes.answer = +newAnswer;
+      }
     }
-    await fetch(`${API_BASE_URL}/problems/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...changes, token }),
-    });
+    await updateProblem(id, { ...changes, token });
     fetchProblem(id);
     setNewType('');
     setNewAnswer('');
@@ -55,36 +59,26 @@ function UpdateProblem({ id, type, answer, fetchProblem }: Props) {
             </p>
             <label className="flex flex-col items-center gap-2.5 text-base">
               <span>изменить на:</span>
-              <input
-                className="w-full min-h-10 p-2 border text-lg text-center"
-                type="number"
-                onChange={(e) => setNewType(e.target.value)}
-                value={newType}
-              />
+              <Input type="number" onChange={(e) => setNewType(e.target.value)} value={newType} />
             </label>
           </div>
           <div>
             <p className="text-xl text-center">
-              Ответ задачи: <b>{answer}</b>
+              Ответ задачи: <b>{type >= PART_2_BEGIN_TYPE ? textAnswer : answer}</b>
             </p>
             <label className="flex flex-col items-center gap-2.5 text-base">
               <span>изменить на:</span>
-              <input
-                className="w-full min-h-10 p-2 border text-lg text-center"
-                type="number"
+              <Input
+                type={type >= PART_2_BEGIN_TYPE ? 'text' : 'number'}
                 onChange={(e) => setNewAnswer(e.target.value)}
                 value={newAnswer}
               />
             </label>
           </div>
         </div>
-        <button
-          className="min-h-12 p-2.5 bg-green-400 border-0 cursor-pointer text-white font-[inherit] uppercase font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed enabled:hover:brightness-110 focus-visible:brightness-110 enabled:active:brightness-90"
-          type="submit"
-          disabled={newAnswer === '' && newType === ''}
-        >
+        <Button variant="success" type="submit" disabled={newAnswer === '' && newType === ''}>
           Сохранить
-        </button>
+        </Button>
       </form>
     </article>
   );

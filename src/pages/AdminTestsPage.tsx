@@ -1,46 +1,34 @@
 import { useState, useEffect, useCallback } from 'react';
-
-import { API_BASE_URL } from '../config';
+import Button from '../components/ui/Button';
+import CreateTestModal from '../components/CreateTestModal';
+import { getTests, generateTest, deleteTest, getTestAnswers } from '../api';
+import { PART_2_BEGIN_TYPE } from '../config';
 import type { Test } from '../types';
 
-interface TestAnswer {
-  id: string;
-  type: number;
-  answer: number;
-}
-
 function AdminTestsPage() {
-  const [testName, setTestName] = useState<string>('');
   const [token, setToken] = useState<string>('');
   const [tests, setTests] = useState<Test[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false); // Состояние загрузки для защиты от повторных запросов
+  const [modalDisplay, setModalDisplay] = useState<boolean>(false);
 
   const fetchTests = useCallback(async () => {
     if (token) {
-      const response: Response = await fetch(`${API_BASE_URL}/tests?token=${token}`);
-      if (!response.ok) {
-        return;
-      }
-      const data: Test[] = await response.json();
-      setTests(data);
+      const tests = await getTests(token);
+      setTests(tests);
     }
   }, [token]);
 
-  const formSubmitHandler = async (event: React.FormEvent<HTMLFormElement>) => {
+  const formSubmitHandler = async (
+    event: React.FormEvent<HTMLFormElement>,
+    testName: string,
+    typesCount: { [key: number]: number }
+  ) => {
     event.preventDefault();
     setIsLoading(true);
     try {
-      const responce = await fetch(`${API_BASE_URL}/tests?token=${token}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: testName }),
-      });
-      if (!responce.ok) {
-        throw new Error(responce.statusText);
-      }
-      setTestName('');
+      await generateTest(testName, token, typesCount);
       fetchTests();
-      alert(`Тест "${testName}" СОЗДАН`);
+      setModalDisplay(false);
     } catch (error) {
       console.error('Error adding test:', error);
       alert('Ошибка создания теста');
@@ -50,19 +38,13 @@ function AdminTestsPage() {
   };
 
   const buttonDeleteHandler = async (id: number, name: string) => {
-    const confirmation = prompt(`Введите "удалить" для удаления теста №${id} - "${name}":`);
-    if (confirmation?.toLowerCase() !== 'удалить') {
+    const yes = confirm(`Удалить тест "${name}"?`);
+    if (!yes) {
       return;
     }
     try {
-      const responce = await fetch(`${API_BASE_URL}/tests/${id}?token=${token}`, {
-        method: 'DELETE',
-      });
-      if (!responce.ok) {
-        throw new Error(responce.statusText);
-      }
+      await deleteTest(id, token);
       fetchTests();
-      alert(`Тест "${name}" УДАЛЕН`);
     } catch (error) {
       console.error('Error deleting test:', error);
       alert('Ошибка удаления теста');
@@ -70,15 +52,11 @@ function AdminTestsPage() {
   };
 
   const buttonAnswersHandler = async (testId: number) => {
-    const response: Response = await fetch(
-      `${API_BASE_URL}/tests/${testId}/answers?token=${token}`
+    const testAnswers = await getTestAnswers(testId, token);
+    const lines = testAnswers.map(
+      (answer) =>
+        `${answer.type} | ${answer.id} | ${answer.type >= PART_2_BEGIN_TYPE ? answer.textAnswer : answer.answer}`
     );
-    if (!response.ok) {
-      alert('Ошибка получения ответов');
-      return;
-    }
-    const testAnswers: TestAnswer[] = await response.json();
-    const lines = testAnswers.map((answer) => `${answer.type} | ${answer.id} | ${answer.answer}`);
     const message = lines.join('\n');
     alert(`Ответы на тест ${testId}:\n${message}`);
   };
@@ -94,19 +72,20 @@ function AdminTestsPage() {
 
   return (
     <>
-      <form className="flex gap-2.5 w-fit mt-0 mx-auto mb-11" onSubmit={formSubmitHandler}>
-        <label className="flex gap-2.5 w-fit">
-          <span>Название теста:</span>
-          <input type="text" onChange={(e) => setTestName(e.target.value)} value={testName} />
-        </label>
-        <button
-          className="block my-0 mx-auto min-w-[100px]"
-          type="submit"
-          disabled={isLoading || !testName}
-        >
-          {isLoading ? 'Создание...' : 'Создать'}
-        </button>
-      </form>
+      <CreateTestModal
+        isOpen={modalDisplay}
+        isLoading={isLoading}
+        onClose={() => setModalDisplay(false)}
+        onSubmit={formSubmitHandler}
+      />
+      <Button
+        className="w-[150px] mx-auto"
+        variant="light"
+        type="button"
+        onClick={() => setModalDisplay(true)}
+      >
+        Создать
+      </Button>
       <table className="w-4/5 border-collapse my-0 mx-auto">
         <thead>
           <tr>
@@ -143,22 +122,12 @@ function AdminTestsPage() {
                   </a>
                 </td>
                 <td className="border border-gray-400 border-solid p-2 text-center">
-                  <button
-                    className="cursor-pointer"
-                    type="button"
-                    onClick={() => buttonAnswersHandler(test._id)}
-                  >
-                    Ответы
-                  </button>
+                  <Button onClick={() => buttonAnswersHandler(test._id)}>Ответы</Button>
                 </td>
                 <td className="border border-gray-400 border-solid p-2 text-center">
-                  <button
-                    className="cursor-pointer"
-                    type="button"
-                    onClick={() => buttonDeleteHandler(test._id, test.name)}
-                  >
+                  <Button variant="danger" onClick={() => buttonDeleteHandler(test._id, test.name)}>
                     Удалить
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))

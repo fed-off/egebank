@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
 import TestProblems from '../components/TestProblems';
-import { ProblemType } from '../types';
-import { API_BASE_URL } from '../config';
+import { getProblems } from '../api';
+import type { ProblemType } from '../types';
 
-function RandomTestPage() {
+interface Props {
+  updateTestTrigger: boolean;
+}
+
+function RandomTestPage({ updateTestTrigger }: Props) {
   const [problems, setProblems] = useState<ProblemType[]>([]);
 
   useEffect(() => {
     async function fetchData() {
-      const response: Response = await fetch(`${API_BASE_URL}/problems`);
-      const data: ProblemType[] = await response.json();
-      setProblems(data);
+      const problems = await getProblems('random');
+      setProblems(problems);
     }
     fetchData();
-  }, []);
+  }, [updateTestTrigger]);
 
   return <TestProblems problems={problems} />;
 }

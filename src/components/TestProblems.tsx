@@ -2,9 +2,11 @@ import confetti from 'canvas-confetti';
 import { useEffect, useState, useContext } from 'react';
 import ProblemList from './ProblemList';
 import { convertPrimaryToSecondaryScore, randomPraise } from '../utils';
+import { PART_2_BEGIN_TYPE } from '../config';
 import { validateAnswers } from '../api';
 import ProblemContext from '../contexts/ProblemContext';
 import type { ProblemType } from '../types';
+import Button from './ui/Button';
 
 interface InputData {
   id: string;
@@ -25,7 +27,8 @@ function TestProblems({ problems }: Props) {
     setInputsData(problems.map((problem) => ({ id: problem.id, answer: '', correct: undefined })));
   }, [problems]);
 
-  const isAllProblemsSolved = score > 0 && score === problems.length;
+  const isAllProblemsSolved =
+    score > 0 && score === problems.filter((p) => p.type < PART_2_BEGIN_TYPE).length;
 
   useEffect(() => {
     if (isAllProblemsSolved) {
@@ -72,13 +75,9 @@ function TestProblems({ problems }: Props) {
     <ProblemContext.Provider value={newProblemContext}>
       <ProblemList problems={problems} inputsData={inputsData} />
       <div className="flex gap-10 p-6 mt-[60px] mx-0 bg-white text-lg font-medium">
-        <button
-          className="flex justify-center items-center gap-2.5 m-0 py-2.5 px-5 border-0 rounded bg-gray-100 font-[inherit] text-lg font-medium uppercase cursor-pointer transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed enabled:hover:bg-gray-200 focus-visible:bg-gray-200 enabled:active:bg-gray-300"
-          type="button"
-          onClick={buttonClickHandler}
-        >
+        <Button variant="success" className="text-lg" onClick={buttonClickHandler}>
           Подвести итоги
-        </button>
+        </Button>
         <p className="grid gap-5 m-0">
           <span>
             Первичный балл: <b>{score}</b>

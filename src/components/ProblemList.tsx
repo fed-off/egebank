@@ -1,4 +1,4 @@
-import Problem from './Problem';
+import Problem from './ui/Problem';
 import type { InputData } from './TestProblems';
 import type { ProblemType } from '../types';
 

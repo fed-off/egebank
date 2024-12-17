@@ -2,8 +2,8 @@ import { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import TestProblems from '../components/TestProblems';
 import ProblemContext from '../contexts/ProblemContext';
-import { API_BASE_URL } from '../config';
-import { Test } from '../types';
+import { getTest } from '../api';
+import type { Test } from '../types';
 
 function TestsPage() {
   const [test, setTest] = useState<Test>();
@@ -12,10 +12,13 @@ function TestsPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const response: Response = await fetch(`${API_BASE_URL}/tests/${id}`);
-      if (response.ok) {
-        const test: Test = await response.json();
-        setTest(test);
+      try {
+        if (id) {
+          const test = await getTest(id);
+          setTest(test);
+        }
+      } catch {
+        setTest(undefined);
       }
     }
     fetchData();

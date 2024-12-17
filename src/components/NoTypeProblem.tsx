@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-
-import { API_BASE_URL } from '../config';
+import Button from './ui/Button';
+import Input from './ui/Input';
+import { updateProblem } from '../api';
 
 interface Props {
   id: string;
@@ -16,16 +17,12 @@ function NoTypeProblem({ id, switchToNextProblem }: Props) {
     setToken(searchParams.get('token') || '');
   }, []);
 
-  const buttonClickHandler = (event: React.MouseEvent<HTMLElement>, save: boolean) => {
+  const buttonClickHandler = async (event: React.MouseEvent<HTMLElement>, save: boolean) => {
     event.preventDefault();
     if (save) {
-      fetch(`${API_BASE_URL}/problems/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: parseInt(type),
-          token,
-        }),
+      await updateProblem(id, {
+        type: parseInt(type),
+        token,
       });
     }
     switchToNextProblem();
@@ -47,8 +44,8 @@ function NoTypeProblem({ id, switchToNextProblem }: Props) {
       <form className="flex flex-col gap-3 pt-7 w-60 mt-auto" action="#" method="POST">
         <label className="flex flex-col items-center gap-2.5 text-xl">
           <span>Указать тип задачи:</span>
-          <input
-            className="w-full min-h-10 p-2 border text-lg text-center"
+          <Input
+            className="w-full"
             type="number"
             min="1"
             max="20"
@@ -57,21 +54,17 @@ function NoTypeProblem({ id, switchToNextProblem }: Props) {
           />
         </label>
         <div className="grid grid-cols-2 gap-3">
-          <button
-            className="min-h-10 p-2.5 bg-orange-400 border-0 cursor-pointer text-white font-[inherit] uppercase font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed enabled:hover:brightness-110 focus-visible:brightness-110 enabled:active:brightness-90"
-            type="button"
-            onClick={(e) => buttonClickHandler(e, false)}
-          >
+          <Button variant="warning" onClick={(e) => buttonClickHandler(e, false)}>
             Пропустить
-          </button>
-          <button
-            className="min-h-10 p-2.5 bg-green-400 border-0 cursor-pointer text-white font-[inherit] uppercase font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed enabled:hover:brightness-110 focus-visible:brightness-110 enabled:active:brightness-90"
+          </Button>
+          <Button
+            variant="success"
             type="submit"
-            onClick={(e) => buttonClickHandler(e, true)}
             disabled={type === ''}
+            onClick={(e) => buttonClickHandler(e, true)}
           >
             Сохранить
-          </button>
+          </Button>
         </div>
       </form>
     </article>

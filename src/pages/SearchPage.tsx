@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { API_BASE_URL } from '../config';
-import SearchForm from '../components/SearchForm';
+import SearchForm from '../components/ui/SearchForm';
 import SmartProblem from '../components/SmartProblem';
+import { getProblem } from '../api';
 import type { ProblemType } from '../types';
 
 function SearchPage() {
   const [problem, setProblem] = useState<ProblemType | null>(null);
 
   const fetchProblem = async (id: string) => {
-    const resp = await fetch(`${API_BASE_URL}/problems/${id}`);
-    if (!resp.ok) {
+    try {
+      const problem = await getProblem(id);
+      setProblem(problem);
+    } catch {
       setProblem(null);
-      return;
     }
-    setProblem(await resp.json());
   };
 
   const formSubmitHandler = async (event: React.FormEvent<HTMLFormElement>, problemId: string) => {

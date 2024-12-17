@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import NoAnswerProblem from '../components/NoAnswerProblem';
-
-import { API_BASE_URL } from '../config';
+import { getProblems } from '../api';
 
 interface Problem {
   id: string;
@@ -16,9 +15,8 @@ function AdminNoAnswerPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const response: Response = await fetch(`${API_BASE_URL}/problems/noanswer`);
-      const data: Problem[] = await response.json();
-      setProblems(data);
+      const problems = await getProblems('no-answer');
+      setProblems(problems);
     }
     fetchData();
   }, []);
@@ -66,6 +64,7 @@ function AdminNoAnswerPage() {
             currentProblemIndex
           ]?.id
         }
+        type={selectedType === '0' ? undefined : +selectedType}
         switchToNextProblem={switchToNextProblem}
       />
     </>

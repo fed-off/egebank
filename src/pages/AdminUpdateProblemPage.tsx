@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import SearchForm from '../components/SearchForm';
+import SearchForm from '../components/ui/SearchForm';
 import UpdateProblem from '../components/UpdateProblem';
-
-import { API_BASE_URL } from '../config';
+import { getProblemWithAnswer } from '../api';
 
 interface Problem {
   id: string;
@@ -20,12 +19,12 @@ function AdminUpdateProblemPage() {
   }, []);
 
   const fetchProblem = async (id: string) => {
-    const resp = await fetch(`${API_BASE_URL}/problems/${id}?token=${token}`);
-    if (resp.status === 404) {
+    try {
+      const problem = await getProblemWithAnswer(id, token);
+      setProblem(problem);
+    } catch {
       setProblem(null);
-      return;
     }
-    setProblem(await resp.json());
   };
 
   const formSubmitHandler = async (event: React.FormEvent<HTMLFormElement>, problemId: string) => {

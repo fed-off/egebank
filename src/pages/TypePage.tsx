@@ -1,8 +1,8 @@
 import { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { API_BASE_URL } from '../config';
 import ProblemContext from '../contexts/ProblemContext';
 import ProblemList from '../components/ProblemList';
+import { getProblemsByType } from '../api';
 import type { ProblemType } from '../types';
 
 function TypePage() {
@@ -12,10 +12,13 @@ function TypePage() {
 
   useEffect(() => {
     async function fetchData() {
-      const response: Response = await fetch(`${API_BASE_URL}/problems/type/${id}`);
-      if (response.ok) {
-        const problems: ProblemType[] = await response.json();
-        setProblems(problems);
+      try {
+        if (id) {
+          const problems = await getProblemsByType(id);
+          setProblems(problems);
+        }
+      } catch {
+        setProblems([]);
       }
     }
     fetchData();
