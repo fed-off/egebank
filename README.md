@@ -1,3 +1,6 @@
+# Основной репозиторий является приватным. Этот репозиторий предназначен для демонстрации frontend части проекта
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
